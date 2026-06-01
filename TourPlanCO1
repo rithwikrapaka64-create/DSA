@@ -1,0 +1,102 @@
+
+import java.util.Scanner;
+
+class Node {
+    int key, height;
+    Node left, right;
+    Node(int k) { key = k; height = 1; }
+}
+
+public class TourPlanCO1 {
+    static Node root;
+
+    static int height(Node n) { return (n == null) ? 0 : n.height; }
+    static int balance(Node n) { return (n == null) ? 0 : height(n.left) - height(n.right); }
+
+    static Node rotateRight(Node y) {
+        Node x = y.left;
+        Node T2 = x.right;
+        x.right = y;
+        y.left = T2;
+        y.height = Math.max(height(y.left), height(y.right)) + 1;
+        x.height = Math.max(height(x.left), height(x.right)) + 1;
+        return x;
+    }
+
+    static Node rotateLeft(Node x) {
+        Node y = x.right;
+        Node T2 = y.left;
+        y.left = x;
+        x.right = T2;
+        x.height = Math.max(height(x.left), height(x.right)) + 1;
+        y.height = Math.max(height(y.left), height(y.right)) + 1;
+        return y;
+    }
+
+    static Node insert(Node node, int key) {
+        if (node == null) return new Node(key);
+
+        if (key < node.key) node.left = insert(node.left, key);
+        else if (key > node.key) node.right = insert(node.right, key);
+        else return node; // duplicate keys not allowed
+
+        node.height = 1 + Math.max(height(node.left), height(node.right));
+        int balance = balance(node);
+
+        // Balance cases
+        if (balance > 1 && key < node.left.key) return rotateRight(node);       
+        if (balance < -1 && key > node.right.key) return rotateLeft(node);      
+        if (balance > 1 && key > node.left.key) {                              
+            node.left = rotateLeft(node.left);
+            return rotateRight(node);
+        }
+        if (balance < -1 && key < node.right.key) {                             
+            node.right = rotateRight(node.right);
+            return rotateLeft(node);
+        }
+
+        return node;
+    }
+
+    static void inorder(Node n) {
+        if (n != null) {
+            inorder(n.left);
+            System.out.print(n.key + " ");
+            inorder(n.right);
+        }
+    }
+
+    static boolean search(Node node, int key) {
+        if (node == null) return false;
+        if (node.key == key) return true;
+        if (key < node.key) return search(node.left, key);
+        else return search(node.right, key);
+    }
+
+    public static void main(String[] args) {
+        try (Scanner sc = new Scanner(System.in)) {
+            // Input number of destinations
+            System.out.print("Enter number of destinations: ");
+            int n = sc.nextInt();
+
+            System.out.println("Enter destination IDs:");
+            for (int i = 0; i < n; i++) {
+                int d = sc.nextInt();
+                root = insert(root, d);
+            }
+
+            // Display sorted destinations
+            System.out.println("Sorted Destinations (AVL Inorder Traversal):");
+            inorder(root);
+            System.out.println();
+
+            // Search for a destination
+            System.out.print("Enter destination ID to search: ");
+            int key = sc.nextInt();
+            if (search(root, key))
+                System.out.println("Destination " + key + " is present.");
+            else
+                System.out.println("No value is present.");
+        }
+    }
+}
